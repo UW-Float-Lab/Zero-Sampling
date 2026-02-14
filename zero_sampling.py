@@ -11,7 +11,7 @@ import numpy as np
 import time
 import os
 import sys
-
+import subprocess
 from optparse import OptionParser
 import datetime
 import shutil
@@ -132,12 +132,12 @@ def zero_sampling(ser_float,zero_constant):
         ser_float.write(b'y')
 
     zero_frequency_destination_files = (f"/net/alace/{float_num}/{file_path}")
-    directory_name = (f"/net/alace/{float_num}")
-    try:
-        os.mkdir(directory_name)
-    except FileExistsError:
-        hi = 'hi'      
-    shutil.copyfile(file_path, zero_frequency_destination_files)
+    subprocess.run(["homedir", str(float_num)], cwd="/net/alace/templates")
+    source_file = os.path.abspath(file_path)
+    time.sleep(5)
+    os.chdir(f"/net/alace/{float_num}")
+    time.sleep(1)
+    shutil.copyfile(source_file, zero_frequency_destination_files)
 
 if __name__ == "__main__":
     ser_float = serial.Serial(port = '/dev/com1', baudrate = 9600, bytesize = 8, parity = 'N', stopbits=1,timeout=(5),xonxoff = True)
