@@ -16,6 +16,20 @@ from optparse import OptionParser
 import datetime
 import shutil
 def zero_sampling(ser_float,zero_constant):
+    CTD_only = False
+    ctd_only_check = input("Is this a CTD-only test? [y/n]")
+    if ctd_only_check.lower() == 'y':
+        CTD_only = True
+    elif ctd_only_check.lower() == 'n':
+        CTD_only = False
+    else:
+        while ctd_only_check.lower() not in ['y', 'n']:
+            ctd_only_check = input('please enter a valid input [y/n]')
+        CTD_only = (ctd_only_check.lower() == 'y')
+
+    print("CTD only test:", CTD_only)
+
+
     #wakes up float and clears any wake up characters
     for i in range(4):
         ser_float.write(b'n\r')
@@ -55,9 +69,13 @@ def zero_sampling(ser_float,zero_constant):
     num_trials = 104
     data = np.zeros(num_trials)
     file_path = (str(ctd_num) + "_zero_frequency.log")
-    with open(file_path, 'w') as file:
-        file.write('Float APFID: ' + str(float_num) + '\n')
+    message = input("What status update would you like to add for this test?")
+    with open(file_path, 'a') as file:
+        file.write(str(message) + '\n' )
+        file.write('\n')
         file.write('CTD Serial Number: ' + str(ctd_num) + '\n')
+        file.write('CTD Only State = ' + str(CTD_only))
+        file.write('hull APFID: ' + str(float_num) + '\n')
         file.write('\n')
         ser_float.reset_input_buffer()    
         time.sleep(0.5)
@@ -130,12 +148,17 @@ def zero_sampling(ser_float,zero_constant):
         ser_float.write(b'f')
         time.sleep(1)
         ser_float.write(b'y')
-
-    zero_frequency_destination_files = (f"/net/alace/{float_num}/{file_path}")
-    subprocess.run(["homedir", str(float_num)], cwd="/net/alace/templates")
-    source_file = os.path.abspath(file_path)
-    time.sleep(5)
-    os.chdir(f"/net/alace/{float_num}")
+    if CTD_only == False:
+        zero_frequency_destination_files = (f"/net/alace/{float_num}/{file_path}")
+        subprocess.run(["homedir", str(float_num)], cwd="/net/alace/templates")
+        source_file = os.path.abspath(file_path)
+        time.sleep(5)
+        os.chdir(f"/net/alace/{float_num}")
+    else:
+        zero_frequency_destination_files = (f"/net/alace/ZeroCalCTDOnly/{file_path}")
+        source_file = os.path.abspath(file_path)
+        time.sleep(5)
+        os.chdir(f"/net/alace/ZeroCalCTDOnly")
     time.sleep(1)
     shutil.copyfile(source_file, zero_frequency_destination_files)
 
